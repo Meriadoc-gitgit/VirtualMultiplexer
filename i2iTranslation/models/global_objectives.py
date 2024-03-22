@@ -1,8 +1,6 @@
 import torch.nn as nn
-import mlflow
-from i2iTranslation.utils.util import robust_mlflow
 from i2iTranslation.models.vgg import *
-from i2iTranslation.constant import *
+from bin.constant import *
 
 
 def convert_patches_to_image(args, src_patches, src_img_size, src_patch_coords, dst_patches, dst_img_size, dst_patch_coords, netG, device):
@@ -77,9 +75,6 @@ class SCLossCriterion(nn.Module):
         style_layer_names = ''
         for x in self.style_layer_names:
             style_layer_names = style_layer_names + x + ','
-
-        robust_mlflow(mlflow.log_param, 'content_layer_names', content_layer_names)
-        robust_mlflow(mlflow.log_param, 'style_layer_names', style_layer_names)
 
     def _prepare_model(self, args):
         # we are not tuning model weights -> requires_grad=False

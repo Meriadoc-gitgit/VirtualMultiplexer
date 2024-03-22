@@ -5,7 +5,6 @@ for unpaired image-to-image translation.
 """
 
 import numpy as np
-import mlflow
 import torch
 
 from i2iTranslation.models.base_model import BaseModel
@@ -13,7 +12,6 @@ from i2iTranslation.models import networks
 from i2iTranslation.models.neighborhood_objectives import GANLoss, PatchNCELoss
 from i2iTranslation.models.global_objectives import SCLossCriterion
 from i2iTranslation.models.local_objectives import DiscriminatorROI, ClassifierROI
-from i2iTranslation.utils.util import robust_mlflow
 
 
 class CUTModel(BaseModel):
@@ -29,16 +27,10 @@ class CUTModel(BaseModel):
         # define generator network
         self.netG = networks.define_G(args=args)
         self.netF = networks.define_F(args=args, device=device)
-        robust_mlflow(mlflow.log_param, 'netG_params',
-                      sum(p.numel() for p in self.netG.parameters() if p.requires_grad))
-        robust_mlflow(mlflow.log_param, 'netF_params',
-                      sum(p.numel() for p in self.netF.parameters() if p.requires_grad))
 
         if self.is_train:
             # define discriminator network
             self.netD = networks.define_D(args=args)
-            robust_mlflow(mlflow.log_param, 'netD_params',
-                          sum(p.numel() for p in self.netD.parameters() if p.requires_grad))
 
             # define loss functions
             self.criterionGAN = GANLoss(self.gan_mode, device=device)
@@ -75,9 +67,6 @@ class CUTModel(BaseModel):
             if self.is_roi_discriminator:
                 # ROI discriminator
                 self.netD_ROI = DiscriminatorROI(base_filters=self.roi_d_base_filters)
-                robust_mlflow(mlflow.log_param, 'netD_ROI_params',
-                              sum(p.numel() for p in self.netD_ROI.parameters() if p.requires_grad))
-
                 self.optimizer_D_ROI = torch.optim.Adam(
                     self.netD_ROI.parameters(),
                     lr=self.lr_D_ROI,
@@ -87,9 +76,6 @@ class CUTModel(BaseModel):
 
                 # ROI classifier
                 self.netC_ROI = ClassifierROI(base_filters=self.roi_c_base_filters, roi_patch_size=self.roi_patch_size)
-                robust_mlflow(mlflow.log_param, 'netC_ROI_params',
-                              sum(p.numel() for p in self.netC_ROI.parameters() if p.requires_grad))
-
                 self.optimizer_C_ROI = torch.optim.Adam(
                     self.netC_ROI.parameters(),
                     lr=self.lr_C_ROI,

@@ -1,7 +1,7 @@
+import os
 import torch
 import numpy as np
 
-from i2iTranslation.constant import *
 from i2iTranslation.utils.util import read_image, unnormalize, clip_img, tensor2img, upsample_image
 
 class PostProcess:
@@ -18,7 +18,9 @@ class PostProcess:
         self.patch_norm = args['train.params.patch_norm']
         self.patch_clip = args['train.params.patch_clip']
         self.is_apply_tissue_mask = is_apply_tissue_mask
-        self.core_tissue_masks_path = args['src_core_tissue_masks_path']
+        self.tissue_masks_path = args['src_tissue_masks_path']
+        self.patch_normalization_mean = 0.5
+        self.patch_normalization_std = 0.5
 
     def postprocess(
             self,
@@ -33,7 +35,7 @@ class PostProcess:
 
         # Patch-level preprocessing
         if self.patch_norm:
-            dst_patches_fake = unnormalize(dst_patches_fake, PATCH_NORMALIZATION_MEAN, PATCH_NORMALIZATION_STD)
+            dst_patches_fake = unnormalize(dst_patches_fake, self.patch_normalization_mean, self.patch_normalization_std)
         if self.patch_clip:
             dst_patches_fake = clip_img(dst_patches_fake)         # clip patch values
         dst_patches_fake = tensor2img(dst_patches_fake)           # convert tensor to PIL
@@ -68,7 +70,7 @@ class PostProcess:
         return dst_img_stitch
 
     def _get_tissue_mask(self):
-        tissue_mask_path = os.path.join(self.core_tissue_masks_path, os.path.basename(self.src_image_path))
+        tissue_mask_path = os.path.join(self.tissue_masks_path, os.path.basename(self.src_image_path))
         if os.path.isfile(tissue_mask_path):
             return read_image(tissue_mask_path)
         else:

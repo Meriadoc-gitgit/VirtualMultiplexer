@@ -4,8 +4,13 @@ from torch.nn import init
 from torch.optim import lr_scheduler
 from typing import Dict, Any
 from copy import deepcopy
-from i2iTranslation.constant import NORM_CFG
 
+# Normalizer configuration
+NORM_CFG = {
+    'instance': {
+        'type': 'in'
+    }
+}
 
 ###############################################################################
 # Helper Functions

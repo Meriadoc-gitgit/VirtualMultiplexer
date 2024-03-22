@@ -3,17 +3,14 @@ import os
 import glob
 import random
 from tqdm import tqdm
-import mlflow
 from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
-
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 
-from i2iTranslation.constant import *
-from i2iTranslation.utils.util import get_split, robust_mlflow, read_image, downsample_image, random_seed, rescale_tensor
+from i2iTranslation.utils.util import get_split, read_image, downsample_image, random_seed, rescale_tensor
 
 
 class BaseDataset(Dataset):
@@ -30,10 +27,12 @@ class BaseDataset(Dataset):
         self.patch_norm = args['train.params.patch_norm']
         self.max_src_samples = args['train.data.max_src_samples']
         self.downsample = args['train.data.downsample']
-        self.core_images_path = args['core_images_path']
+        self.images_path = args['images_path']
         self.i2i_patches_path = args['i2i_patches_path']
         self.image_fmt = image_fmt
         self.is_i2i_stage2 = True if 'i2i_stage2' in args.keys() else False
+        self.patch_normalization_mean = 0.5
+        self.patch_normalization_std = 0.5
 
         self.downsampled_size = (
             int(self.patch_size // self.downsample),
@@ -76,14 +75,10 @@ class BaseDataset(Dataset):
         self.src_split = src_split
         self.dst_split = dst_split
 
-        if self.is_train and (not self.is_i2i_stage2):
-            robust_mlflow(mlflow.log_param, f'n_src_ids_{self.mode}', len(self.src_split))
-            robust_mlflow(mlflow.log_param, f'n_dst_ids_{self.mode}', len(self.dst_split))
-
     def _base_load(self):
         # get src and dst image paths
-        self.src_image_paths = [f'{self.core_images_path}/{self.src_marker}/{x}.{self.image_fmt}' for x in self.src_split]
-        self.dst_image_paths = [f'{self.core_images_path}/{self.dst_marker}/{x}.{self.image_fmt}' for x in self.dst_split]
+        self.src_image_paths = [f'{self.images_path}/{self.src_marker}/{x}.{self.image_fmt}' for x in self.src_split]
+        self.dst_image_paths = [f'{self.images_path}/{self.dst_marker}/{x}.{self.image_fmt}' for x in self.dst_split]
 
         if self.is_train:
             # get patch names
@@ -162,8 +157,8 @@ class ImagePatchDataset(BaseDataset):
         if self.patch_norm:
             transform_list.append(
                 transforms.Normalize(
-                    (PATCH_NORMALIZATION_MEAN, PATCH_NORMALIZATION_MEAN, PATCH_NORMALIZATION_MEAN),
-                    (PATCH_NORMALIZATION_STD, PATCH_NORMALIZATION_STD, PATCH_NORMALIZATION_STD)
+                    (self.patch_normalization_mean, self.patch_normalization_mean, self.patch_normalization_mean),
+                    (self.patch_normalization_std, self.patch_normalization_std, self.patch_normalization_std)
                 )
             )
 

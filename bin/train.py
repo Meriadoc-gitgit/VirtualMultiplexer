@@ -1,6 +1,5 @@
 import time
 import numpy as np
-import mlflow
 from tqdm import tqdm
 import torch
 
@@ -8,7 +7,7 @@ from i2iTranslation.dataloader import ImagePatchDataset, TileDataset, prepare_im
 from i2iTranslation.models import create_model
 from i2iTranslation.models.global_objectives import convert_patches_to_image
 from i2iTranslation.utils.util_bbox import load_bboxes, bbox_data_generator
-from i2iTranslation.utils.util import robust_mlflow, delete_tensor_gpu
+from i2iTranslation.utils.util import delete_tensor_gpu
 
 def trainer(args, device):
     epoch_count = args['train.params.save.epoch_count']
@@ -94,12 +93,11 @@ def trainer(args, device):
                 # free up gpu memory
                 delete_tensor_gpu(model_input)
 
-                # loss logging to mlflow at <loss_logging_freq>
+                # loss logging at <loss_logging_freq>
                 if iter_count % loss_logging_freq == 0:
                     losses = model.get_current_losses()
                     losses = {k: round(v, 4) for k, v in losses.items()}
-                    for key, val in losses.items():
-                        robust_mlflow(mlflow.log_metric, f'loss_{key}', val, iter_count)
+                    print('train losses: ', losses)
 
         # Global objectives (Style & Content) optimization
         if is_image_match and epoch != 0 and epoch % image_match_freq == 0:
@@ -133,24 +131,14 @@ def trainer(args, device):
                     # free up gpu memory
                     delete_tensor_gpu({'src': src_tiles_, 'dst': dst_tiles_, 'dst_fake': dst_fake_tiles_})
 
-                    # loss logging to mlflow
+                    # loss logging
                     if iter_count % loss_logging_freq == 0:
                         losses = {k: round(v, 4) for k, v in losses.items()}
-                        for key, val in losses.items():
-                            robust_mlflow(mlflow.log_metric, f'loss_{key}', val, iter_count)
+                        print('val losses: ', losses)
 
-        # update and log learning rates every epoch
+        # update learning rates every epoch
         model.update_learning_rate()
-        learning_rates = {k: round(v, 6) for k, v in model.get_current_learning_rates().items()}
-        for key, val in learning_rates.items():
-            robust_mlflow(mlflow.log_metric, f'lr_optim_{key}', val, epoch)
 
         # validate the model every <val_epoch_freq> epochs
         if epoch != 0 and epoch % save_model_freq == 0:
             model.save_networks(epoch=None)
-
-        # check epoch run time
-        robust_mlflow(mlflow.log_metric, 'time_per_epoch', round(time.time() - epoch_start_time, 4), epoch)
-        robust_mlflow(mlflow.log_metric, 'completed_epochs', epoch, epoch)
-
-

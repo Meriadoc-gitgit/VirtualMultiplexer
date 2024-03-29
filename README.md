@@ -1,4 +1,4 @@
-# Towards multiplexed histopathology with deep learning-based virtual staining
+# Multiplexed tumor profiling with generative AI 
 
 This repository contains the code to reproduce results of **VirtualMultiplexer**, a generative toolkit that translates real H&E images to matching immunohistochemistry (IHC) images for several markers under unpaired setting.
 

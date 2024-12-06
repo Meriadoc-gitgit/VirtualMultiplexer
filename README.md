@@ -29,6 +29,11 @@ European Multicenter Prostate Cancer Clinical and Translational Research Group (
 
 All images from Hematoxylin & Eosin (H&E) and Immunohistochemistry (IHC) stainings are uploaded to Zenodo under a Creative Commons Attribution 4.0 International License and can be dowloaded from this [link](https://zenodo.org/records/10066853).
 
+### Downloading Masks, Bounding Boxes and Data Splits
+
+We uploaded the all relevant information to [Figshare]( https://figshare.com/projects/VirtualMultiplexer/230498) and 
+provide a notebook [preprocess/preprocess.ipynb](preprocess%2Fpreprocess.ipynb) to demonstrate how to process and plot the data.
+
 ## Running the code 
 
 The VirtualMultiplexer is a generative toolkit for unpaired stain-to-stain translation, trained on real H&E (source) and IHC (target) images.

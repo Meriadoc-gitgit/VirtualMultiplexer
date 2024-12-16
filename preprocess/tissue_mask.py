@@ -104,8 +104,7 @@ class GaussianTissueMask:
             kernel_size (int, optional): Dilation kernel size. Defaults to 20.
             dilation_steps (int, optional): Number of dilation steps. Defaults to 1.
             background_gray_value (int, optional): Gray value of background pixels (usually high). Defaults to 228.
-            downsampling_factor (int, optional): Downsampling factor from the input image
-                                                 resolution. Defaults to 4.
+            downsampling_factor (int, optional): Downsampling factor from the input image resolution. Defaults to 4.
         """
         self.n_thresholding_steps = n_thresholding_steps
         self.sigma = sigma
